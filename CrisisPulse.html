@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080B0F">
+<title>CRISIS PULSE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;600;700;900&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080B0F;
+  --surf: #0D1117;
+  --surf2: #131920;
+  --border: #1E2D3D;
+  --cyan: #00FFE0;
+  --red: #FF4060;
+  --text: #C8D8E8;
+  --dim: #4A6070;
+  --c0: #00E676;
+  --c1: #FFD740;
+  --c2: #FF6D00;
+  --c3: #FF1744;
+  --c4: #FF0040;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif; font-weight:300; }
+
+/* SCANLINES */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+}
+
+/* SCREENS */
+.screen { position:fixed; inset:0; display:flex; flex-direction:column; transition:transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s; }
+.screen.hidden { transform:translateX(100%); opacity:0; pointer-events:none; }
+.screen.slide-left { transform:translateX(-30%); opacity:0; pointer-events:none; }
+
+/* HEADER */
+.hdr {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+  background:rgba(8,11,15,0.97); backdrop-filter:blur(10px); flex-shrink:0; z-index:10;
+}
+.logo { font-family:'Share Tech Mono',monospace; font-size:19px; letter-spacing:.15em; color:var(--cyan); text-shadow:0 0 20px rgba(0,255,224,.35); }
+.logo b { color:var(--red); text-shadow:0 0 20px rgba(255,64,96,.35); font-weight:400; }
+.hdr-right { text-align:right; font-family:'Share Tech Mono',monospace; font-size:9px; line-height:1.7; }
+.live { color:var(--red); }
+.dt { color:var(--dim); }
+.pulse { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--red); margin-right:3px; animation:blink 1.4s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 5px var(--red)} 50%{opacity:.2;box-shadow:none} }
+
+/* SCROLL BODY */
+.body { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:80px; }
+
+/* GLOBAL CARD */
+.global-card {
+  margin:14px 14px 0; background:var(--surf); border:1px solid var(--border); border-radius:6px; padding:14px 16px;
+}
+.sec-label { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:.22em; color:var(--dim); margin-bottom:8px; }
+.g-row { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+.g-num { font-family:'Share Tech Mono',monospace; font-size:56px; line-height:1; font-weight:400; }
+.g-info { display:flex; flex-direction:column; }
+.g-label { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:20px; letter-spacing:.1em; text-transform:uppercase; }
+.g-sub { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dim); margin-top:2px; }
+.bar-track { height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; transition:width .8s ease; }
+
+/* TABS */
+.tabs { display:flex; border-bottom:1px solid var(--border); margin-top:14px; flex-shrink:0; }
+.tab { flex:1; text-align:center; font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:.12em; padding:10px; color:var(--dim); cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; }
+.tab.on { color:var(--cyan); border-bottom-color:var(--cyan); }
+
+/* THEATER CARDS */
+.theaters { padding:10px 14px 0; display:flex; flex-direction:column; gap:10px; }
+.t-card {
+  background:var(--surf); border:1px solid var(--border); border-radius:5px;
+  padding:13px 13px 11px 16px; position:relative; overflow:hidden; cursor:pointer;
+  transition:background .15s; active:background:var(--surf2);
+}
+.t-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+.t-top { display:flex; align-items:center; margin-bottom:9px; }
+.t-flag { font-size:18px; margin-right:8px; flex-shrink:0; }
+.t-name { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; letter-spacing:.07em; text-transform:uppercase; flex:1; }
+.t-score { font-family:'Share Tech Mono',monospace; font-size:24px; }
+.t-mid { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.t-bar { flex:1; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.t-bar-fill { height:100%; border-radius:2px; }
+.t-trend { font-family:'Share Tech Mono',monospace; font-size:9px; flex-shrink:0; }
+.t-note { font-size:11px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:7px; }
+.t-chips { display:flex; gap:4px; flex-wrap:wrap; }
+.chip { font-family:'Share Tech Mono',monospace; font-size:8px; padding:2px 5px; border-radius:2px; border:1px solid; }
+
+/* FEED */
+.feed { padding:10px 14px 0; }
+.feed-item { display:flex; gap:10px; padding-bottom:12px; }
+.feed-line { display:flex; flex-direction:column; align-items:center; width:14px; flex-shrink:0; }
+.feed-dot { width:6px; height:6px; border-radius:50%; background:var(--dim); flex-shrink:0; margin-top:3px; }
+.feed-vline { flex:1; width:1px; background:var(--border); margin-top:3px; }
+.feed-body { flex:1; }
+.feed-meta { display:flex; align-items:center; gap:7px; margin-bottom:4px; flex-wrap:wrap; }
+.feed-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--dim); }
+.feed-tag { font-family:'Share Tech Mono',monospace; font-size:8px; padding:1px 5px; border-radius:2px; border:1px solid; }
+.feed-sc { font-family:'Share Tech Mono',monospace; font-size:10px; }
+.feed-note { font-size:12px; line-height:1.5; color:var(--text); margin-bottom:5px; }
+.feed-chips { display:flex; gap:4px; flex-wrap:wrap; }
+.feed-chip { font-family:'Share Tech Mono',monospace; font-size:8px; padding:1px 4px; border-radius:2px; border:1px solid var(--border); color:var(--dim); }
+
+/* FAB */
+.fab {
+  position:fixed; bottom:24px; right:18px; width:54px; height:54px; border-radius:50%;
+  background:var(--red); border:none; color:#fff; font-size:28px; cursor:pointer;
+  box-shadow:0 4px 20px rgba(255,64,96,.5); display:flex; align-items:center; justify-content:center;
+  z-index:100; transition:transform .15s, box-shadow .15s;
+}
+.fab:active { transform:scale(.92); box-shadow:0 2px 10px rgba(255,64,96,.4); }
+
+/* DETAIL SCREEN */
+.det-back { display:flex; align-items:center; gap:6px; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dim); padding:13px 16px 10px; cursor:pointer; letter-spacing:.1em; flex-shrink:0; }
+.det-hero { text-align:center; padding:18px 16px 20px; background:var(--surf); border-bottom:1px solid var(--border); flex-shrink:0; }
+.det-name { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:26px; letter-spacing:.15em; text-transform:uppercase; margin-bottom:6px; }
+.det-score { font-family:'Share Tech Mono',monospace; font-size:72px; line-height:1; }
+.det-status { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:.2em; text-transform:uppercase; margin-top:2px; }
+.det-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:14px 16px 80px; }
+.ind-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(30,45,61,.5); }
+.ind-row:last-child { border-bottom:none; }
+.ind-name { font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); }
+.ind-badge { font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 6px; border-radius:2px; border:1px solid var(--border); color:var(--dim); }
+.ind-badge.hot { border-color:var(--c3); color:var(--c3); background:rgba(255,23,68,.08); }
+.chart-bars { display:flex; align-items:flex-end; gap:3px; height:70px; margin:10px 0 4px; }
+.chart-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; height:100%; justify-content:flex-end; }
+.chart-bar { width:100%; border-radius:2px 2px 0 0; min-height:2px; }
+.chart-lbl { font-family:'Share Tech Mono',monospace; font-size:8px; color:var(--dim); }
+
+/* LOG ENTRY SCREEN */
+.log-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:0 16px 80px; }
+.form-label { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:.2em; color:var(--dim); margin-bottom:7px; display:block; text-transform:uppercase; }
+.form-group { margin-bottom:18px; }
+.theater-btns { display:flex; gap:7px; flex-wrap:wrap; }
+.tbtn { font-family:'Share Tech Mono',monospace; font-size:10px; padding:7px 11px; border-radius:3px; border:1px solid var(--border); background:var(--bg); color:var(--dim); cursor:pointer; transition:all .15s; }
+.tbtn.sel { border-color:var(--cyan); color:var(--cyan); background:rgba(0,255,224,.07); }
+.slider-row { display:flex; align-items:center; gap:12px; }
+input[type=range] { -webkit-appearance:none; flex:1; height:4px; background:var(--border); border-radius:2px; outline:none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px rgba(0,255,224,.5); cursor:pointer; }
+.slider-val { font-family:'Share Tech Mono',monospace; font-size:22px; color:var(--cyan); min-width:24px; text-align:right; }
+.ind-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.ind-check { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:8px 10px; cursor:pointer; transition:border-color .15s; }
+.ind-check.on { border-color:var(--red); background:rgba(255,64,96,.07); }
+.ind-check input { display:none; }
+.ind-cdot { width:8px; height:8px; border-radius:50%; border:1px solid var(--dim); flex-shrink:0; transition:all .15s; }
+.ind-check.on .ind-cdot { background:var(--red); border-color:var(--red); box-shadow:0 0 6px rgba(255,64,96,.5); }
+.ind-clabel { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dim); line-height:1.3; }
+.ind-check.on .ind-clabel { color:var(--text); }
+textarea { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:'Share Tech Mono',monospace; font-size:12px; padding:10px 12px; resize:none; outline:none; line-height:1.6; }
+textarea:focus { border-color:var(--cyan); }
+.btn-commit { width:100%; background:var(--red); color:#fff; border:none; border-radius:4px; padding:15px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:15px; letter-spacing:.2em; text-transform:uppercase; cursor:pointer; margin-bottom:8px; box-shadow:0 0 20px rgba(255,64,96,.3); }
+.btn-commit:active { box-shadow:0 0 30px rgba(255,64,96,.5); }
+.btn-cancel { width:100%; background:transparent; color:var(--dim); border:1px solid var(--border); border-radius:4px; padding:12px; font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:.1em; cursor:pointer; }
+
+/* EMPTY STATE */
+.empty { text-align:center; padding:40px 20px; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--dim); line-height:2; }
+
+/* LEVEL COLORS */
+.lv0 { color:var(--c0); } .lv1 { color:var(--c1); } .lv2 { color:var(--c2); } .lv3 { color:var(--c3); } .lv4 { color:var(--c4); }
+.bv0 { background:var(--c0); } .bv1 { background:var(--c1); } .bv2 { background:var(--c2); } .bv3 { background:var(--c3); } .bv4 { background:var(--c4); }
+.sv0 { background:var(--c0); } .sv1 { background:var(--c1); } .sv2 { background:var(--c2); } .sv3 { background:var(--c3); } .sv4 { background:rgba(255,0,64,.12); border-color:var(--c4) !important; }
+.strip0::before{background:var(--c0)} .strip1::before{background:var(--c1)} .strip2::before{background:var(--c2)} .strip3::before{background:var(--c3)} .strip4::before{background:var(--c4);box-shadow:0 0 8px var(--c4)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 1 — MAIN DASHBOARD
+════════════════════════════════════════ -->
+<div class="screen" id="scr-main">
+  <div class="hdr">
+    <div class="logo">CRISIS<b>PULSE</b></div>
+    <div class="hdr-right">
+      <div class="live"><span class="pulse"></span>LIVE ASSESSMENT</div>
+      <div class="dt" id="dt-main">—</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Global index -->
+    <div class="global-card">
+      <div class="sec-label">// GLOBAL TENSION INDEX</div>
+      <div class="g-row">
+        <div class="g-num lv2" id="g-score">—</div>
+        <div class="g-info">
+          <div class="g-label lv2" id="g-label">—</div>
+          <div class="g-sub">/100 · 5 THEATERS</div>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill bv2" id="g-bar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab on" id="tab-t" onclick="switchTab('theaters')">THEATERS</div>
+      <div class="tab" id="tab-f" onclick="switchTab('feed')">SIGNAL LOG</div>
+    </div>
+
+    <!-- Theaters panel -->
+    <div id="panel-theaters">
+      <div class="theaters" id="theater-list"></div>
+    </div>
+
+    <!-- Feed panel -->
+    <div id="panel-feed" style="display:none">
+      <div class="feed" id="feed-list"></div>
+    </div>
+  </div>
+
+  <button class="fab" onclick="openLog(null)">+</button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 2 — THEATER DETAIL
+════════════════════════════════════════ -->
+<div class="screen hidden" id="scr-detail">
+  <div class="hdr">
+    <div class="logo">CRISIS<b>PULSE</b></div>
+    <div class="hdr-right"><div class="live"><span class="pulse"></span>THEATER DETAIL</div></div>
+  </div>
+  <div class="det-back" onclick="closeDetail()">← BACK TO OVERVIEW</div>
+  <div class="det-hero">
+    <div class="det-name" id="det-name">—</div>
+    <div class="det-score lv3" id="det-score">—</div>
+    <div class="det-status lv3" id="det-status">—</div>
+  </div>
+  <div class="det-body">
+    <div class="sec-label" style="margin-top:4px">// INDICATOR STATUS</div>
+    <div id="det-indicators"></div>
+    <div class="sec-label" style="margin-top:16px">// 7-DAY SCORE HISTORY</div>
+    <div class="chart-bars" id="det-chart"></div>
+    <div class="sec-label" style="margin-top:14px">// RECENT ENTRIES</div>
+    <div id="det-feed"></div>
+  </div>
+  <button class="fab" onclick="openLog(currentTheater)">+</button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 3 — LOG ENTRY
+════════════════════════════════════════ -->
+<div class="screen hidden" id="scr-log">
+  <div class="hdr">
+    <div class="logo">CRISIS<b>PULSE</b></div>
+    <div class="hdr-right"><div class="live"><span class="pulse"></span>LOG SIGNAL</div></div>
+  </div>
+  <div class="det-back" onclick="closeLog()">← CANCEL</div>
+  <div class="log-body">
+
+    <div class="form-group">
+      <label class="form-label">Theater</label>
+      <div class="theater-btns" id="theater-btns"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tension Score (0–10)</label>
+      <div class="slider-row">
+        <input type="range" min="0" max="10" value="5" id="score-slider" oninput="document.getElementById('score-val').textContent=this.value">
+        <div class="slider-val" id="score-val">5</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Triggered Indicators</label>
+      <div class="ind-grid" id="ind-checks"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Assessment Note</label>
+      <textarea id="log-note" rows="3" placeholder="Brief intel note — what triggered this entry..."></textarea>
+    </div>
+
+    <button class="btn-commit" onclick="commitEntry()">COMMIT ENTRY</button>
+    <button class="btn-cancel" onclick="closeLog()">CANCEL</button>
+
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const THEATERS = [
+  {id:'iran',    name:'IRAN / GULF',     flag:'🇮🇷'},
+  {id:'taiwan',  name:'TAIWAN STRAIT',   flag:'🇹🇼'},
+  {id:'ukraine', name:'UKRAINE FRONT',   flag:'🇺🇦'},
+  {id:'korea',   name:'KOREAN PEN.',     flag:'🇰🇵'},
+  {id:'sahel',   name:'SAHEL / AFRICA',  flag:'🌍'},
+];
+
+const INDICATORS = [
+  'Troop Mobilization','Air Defense Act.','Diplo. Breakdown',
+  'Cyber Op Detected','Economic Sanction','Proxy Escalation',
+  'Nuclear Signal','Naval Posture','Leadership Rhetoric','Ceasefire Collapse'
+];
+
+let currentTheater = null;
+let activeTab = 'theaters';
+
+// ══════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════
+function getEntries(tid) {
+  try { return JSON.parse(localStorage.getItem('cp_'+tid)||'[]'); }
+  catch(e) { return []; }
+}
+function saveEntries(tid, arr) {
+  localStorage.setItem('cp_'+tid, JSON.stringify(arr));
+}
+function addEntry(tid, score, note, indicators) {
+  const arr = getEntries(tid);
+  arr.unshift({score, note, indicators, ts: Date.now()});
+  saveEntries(tid, arr);
+}
+
+// ══════════════════════════════════════
+// SCORING
+// ══════════════════════════════════════
+function theaterScore(tid) {
+  const arr = getEntries(tid);
+  if (!arr.length) return 50;
+  const recent = arr.slice(0,5);
+  return Math.round(recent.reduce((s,e)=>s+e.score,0)/recent.length*10);
+}
+function globalScore() {
+  return Math.round(THEATERS.reduce((s,t)=>s+theaterScore(t.id),0)/THEATERS.length);
+}
+function level(s) {
+  if(s<=25) return 0; if(s<=50) return 1; if(s<=69) return 2; if(s<=84) return 3; return 4;
+}
+function levelLabel(s) {
+  return ['NOMINAL','WATCH','ELEVATED','HIGH ALERT','CRITICAL'][level(s)];
+}
+function levelColor(s) {
+  return ['#00E676','#FFD740','#FF6D00','#FF1744','#FF0040'][level(s)];
+}
+function trend(tid) {
+  const arr = getEntries(tid);
+  if(arr.length<2) return '— STABLE';
+  return arr[0].score > arr[1].score ? '▲ RISING' : arr[0].score < arr[1].score ? '▼ EASING' : '— STABLE';
+}
+function trendColor(tid) {
+  const t = trend(tid);
+  if(t.includes('RISING')) return '#FF1744';
+  if(t.includes('EASING')) return '#00E676';
+  return '#4A6070';
+}
+
+// ══════════════════════════════════════
+// FORMATTING
+// ══════════════════════════════════════
+function fmtTime(ts) {
+  const d = Math.floor((Date.now()-ts)/60000);
+  if(d<60) return d+'m ago';
+  if(d<1440) return Math.floor(d/60)+'h ago';
+  return Math.floor(d/1440)+'d ago';
+}
+function fmtDate() {
+  const n=new Date();
+  return n.toISOString().slice(0,10)+' '+n.toTimeString().slice(0,5)+'Z';
+}
+
+// ══════════════════════════════════════
+// RENDER MAIN
+// ══════════════════════════════════════
+function renderMain() {
+  document.getElementById('dt-main').textContent = fmtDate();
+
+  // Global score
+  const gs = globalScore();
+  const lv = level(gs);
+  const clr = levelColor(gs);
+  document.getElementById('g-score').textContent = gs;
+  document.getElementById('g-score').style.color = clr;
+  document.getElementById('g-label').textContent = levelLabel(gs);
+  document.getElementById('g-label').style.color = clr;
+  document.getElementById('g-bar').style.width = gs+'%';
+  document.getElementById('g-bar').style.background = clr;
+
+  // Theater cards
+  const list = document.getElementById('theater-list');
+  list.innerHTML = '';
+  THEATERS.forEach(t => {
+    const sc = theaterScore(t.id);
+    const lv = level(sc);
+    const clr = levelColor(sc);
+    const tr = trend(t.id);
+    const entries = getEntries(t.id);
+    const lastNote = entries.length ? entries[0].note : 'No entries yet';
+    const chips = entries.length ? (entries[0].indicators||[]).slice(0,3) : [];
+
+    const card = document.createElement('div');
+    card.className = `t-card strip${lv}`;
+    card.innerHTML = `
+      <div class="t-top">
+        <span class="t-flag">${t.flag}</span>
+        <span class="t-name" style="color:${clr}">${t.name}</span>
+        <span class="t-score" style="color:${clr}">${sc}</span>
+      </div>
+      <div class="t-mid">
+        <div class="t-bar"><div class="t-bar-fill" style="width:${sc}%;background:${clr}"></div></div>
+        <span class="t-trend" style="color:${trendColor(t.id)}">${tr}</span>
+      </div>
+      <div class="t-note">${lastNote}</div>
+      <div class="t-chips">${chips.map(c=>`<span class="chip" style="color:${clr};border-color:${clr};background:${clr}18">${c}</span>`).join('')}</div>
+    `;
+    card.onclick = () => openDetail(t.id);
+    list.appendChild(card);
+  });
+
+  renderFeed();
+}
+
+// ══════════════════════════════════════
+// RENDER FEED
+// ══════════════════════════════════════
+function renderFeed() {
+  const list = document.getElementById('feed-list');
+  list.innerHTML = '';
+  const all = [];
+  THEATERS.forEach(t => getEntries(t.id).forEach(e => all.push({...e, tid:t.id, theater:t})));
+  all.sort((a,b)=>b.ts-a.ts);
+
+  if(!all.length) {
+    list.innerHTML = '<div class="empty">// NO ENTRIES YET<br>TAP + TO LOG YOUR FIRST SIGNAL</div>';
+    return;
+  }
+
+  all.forEach(e => {
+    const sc = e.score*10;
+    const clr = levelColor(sc);
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = `
+      <div class="feed-line"><div class="feed-dot"></div><div class="feed-vline"></div></div>
+      <div class="feed-body">
+        <div class="feed-meta">
+          <span class="feed-time">${fmtTime(e.ts)}</span>
+          <span class="feed-tag" style="color:${clr};border-color:${clr};background:${clr}18">${e.theater.flag} ${e.theater.name}</span>
+          <span class="feed-sc" style="color:${clr}">${sc}</span>
+        </div>
+        <div class="feed-note">${e.note}</div>
+        <div class="feed-chips">${(e.indicators||[]).map(i=>`<span class="feed-chip">${i}</span>`).join('')}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════
+// TABS
+// ══════════════════════════════════════
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tab-t').className = 'tab'+(tab==='theaters'?' on':'');
+  document.getElementById('tab-f').className = 'tab'+(tab==='feed'?' on':'');
+  document.getElementById('panel-theaters').style.display = tab==='theaters'?'block':'none';
+  document.getElementById('panel-feed').style.display = tab==='feed'?'block':'none';
+}
+
+// ══════════════════════════════════════
+// DETAIL
+// ══════════════════════════════════════
+function openDetail(tid) {
+  currentTheater = tid;
+  const t = THEATERS.find(x=>x.id===tid);
+  const sc = theaterScore(tid);
+  const lv = level(sc);
+  const clr = levelColor(sc);
+  const entries = getEntries(tid);
+
+  document.getElementById('det-name').textContent = t.flag+' '+t.name;
+  document.getElementById('det-score').textContent = sc;
+  document.getElementById('det-score').style.color = clr;
+  document.getElementById('det-status').textContent = levelLabel(sc);
+  document.getElementById('det-status').style.color = clr;
+
+  // Indicators
+  const indCounts = {};
+  INDICATORS.forEach(i=>indCounts[i]=0);
+  entries.forEach(e=>(e.indicators||[]).forEach(i=>{if(indCounts[i]!==undefined)indCounts[i]++}));
+  const indDiv = document.getElementById('det-indicators');
+  indDiv.innerHTML = INDICATORS.map(ind=>{
+    const hot = indCounts[ind]>0;
+    return `<div class="ind-row">
+      <span class="ind-name">${ind}</span>
+      <span class="ind-badge${hot?' hot':''}">${hot?'ACTIVE ×'+indCounts[ind]:'CLEAR'}</span>
+    </div>`;
+  }).join('');
+
+  // 7-day chart
+  const chart = document.getElementById('det-chart');
+  chart.innerHTML = '';
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  for(let d=6;d>=0;d--) {
+    const dayStart = new Date(); dayStart.setHours(0,0,0,0); dayStart.setDate(dayStart.getDate()-d);
+    const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate()+1);
+    const dayEntries = entries.filter(e=>e.ts>=dayStart&&e.ts<dayEnd);
+    const dayScore = dayEntries.length
+      ? Math.round(dayEntries.reduce((s,e)=>s+e.score,0)/dayEntries.length*10)
+      : (d===0?sc:0);
+    const barClr = dayScore ? levelColor(dayScore) : '#1E2D3D';
+    const pct = dayScore || 5;
+    const col = document.createElement('div');
+    col.className = 'chart-col';
+    col.innerHTML = `
+      <div class="chart-bar" style="height:${pct}%;background:${barClr};opacity:${dayScore?1:.3}"></div>
+      <div class="chart-lbl">${days[new Date(dayStart).getDay()]}</div>
+    `;
+    chart.appendChild(col);
+  }
+
+  // Recent entries
+  const detFeed = document.getElementById('det-feed');
+  if(!entries.length) {
+    detFeed.innerHTML = '<div class="empty">// NO ENTRIES YET</div>';
+  } else {
+    detFeed.innerHTML = entries.slice(0,20).map(e=>{
+      const sc2 = e.score*10;
+      const clr2 = levelColor(sc2);
+      return `<div class="feed-item">
+        <div class="feed-line"><div class="feed-dot"></div><div class="feed-vline"></div></div>
+        <div class="feed-body">
+          <div class="feed-meta">
+            <span class="feed-time">${fmtTime(e.ts)}</span>
+            <span class="feed-sc" style="color:${clr2}">SCORE ${sc2}</span>
+          </div>
+          <div class="feed-note">${e.note}</div>
+          <div class="feed-chips">${(e.indicators||[]).map(i=>`<span class="feed-chip">${i}</span>`).join('')}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('scr-main').classList.add('slide-left');
+  document.getElementById('scr-detail').classList.remove('hidden');
+}
+
+function closeDetail() {
+  document.getElementById('scr-detail').classList.add('hidden');
+  document.getElementById('scr-main').classList.remove('slide-left');
+  renderMain();
+}
+
+// ══════════════════════════════════════
+// LOG ENTRY
+// ══════════════════════════════════════
+function openLog(preselect) {
+  // Theater buttons
+  const btns = document.getElementById('theater-btns');
+  btns.innerHTML = THEATERS.map(t=>`
+    <button class="tbtn${(preselect||'iran')===t.id?' sel':''}" onclick="selectTheater('${t.id}',this)">${t.flag} ${t.name.split(' ')[0]}</button>
+  `).join('');
+
+  // Indicator checkboxes
+  const grid = document.getElementById('ind-checks');
+  grid.innerHTML = INDICATORS.map(ind=>`
+    <label class="ind-check" onclick="this.classList.toggle('on')">
+      <input type="checkbox" value="${ind}">
+      <div class="ind-cdot"></div>
+      <span class="ind-clabel">${ind}</span>
+    </label>
+  `).join('');
+
+  document.getElementById('score-slider').value = 5;
+  document.getElementById('score-val').textContent = 5;
+  document.getElementById('log-note').value = '';
+
+  const active = document.getElementById('scr-detail').classList.contains('hidden') ? 'scr-main' : 'scr-detail';
+  document.getElementById(active).classList.add('slide-left');
+  document.getElementById('scr-log').classList.remove('hidden');
+  document.getElementById('scr-log').dataset.from = active;
+}
+
+function selectTheater(tid, el) {
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function closeLog() {
+  const from = document.getElementById('scr-log').dataset.from || 'scr-main';
+  document.getElementById('scr-log').classList.add('hidden');
+  document.getElementById(from).classList.remove('slide-left');
+}
+
+function commitEntry() {
+  const selBtn = document.querySelector('.tbtn.sel');
+  const tid = selBtn ? THEATERS[Array.from(document.querySelectorAll('.tbtn')).indexOf(selBtn)].id : 'iran';
+  const score = parseInt(document.getElementById('score-slider').value);
+  const note = document.getElementById('log-note').value.trim() || 'Manual entry.';
+  const indicators = Array.from(document.querySelectorAll('.ind-check.on input')).map(i=>i.value);
+
+  addEntry(tid, score, note, indicators);
+
+  const from = document.getElementById('scr-log').dataset.from || 'scr-main';
+  document.getElementById('scr-log').classList.add('hidden');
+  document.getElementById(from).classList.remove('slide-left');
+
+  if(from === 'scr-detail' && currentTheater) {
+    openDetail(currentTheater);
+  } else {
+    renderMain();
+  }
+}
+
+// ══════════════════════════════════════
+// SEED DATA (first run only)
+// ══════════════════════════════════════
+function seedIfEmpty() {
+  if(localStorage.getItem('cp_seeded')) return;
+  addEntry('iran', 8, 'IRGC naval exercise in Strait of Hormuz. 3 corvettes + fast attack craft. Timing coincides with CENTCOM posture shift.', ['Naval Posture','Leadership Rhetoric']);
+  addEntry('ukraine', 7, 'Renewed long-range strike campaign vs energy grid. 14 oblasts affected. Escalatory ladder rung unchanged.', ['Troop Mobilization','Cyber Op Detected']);
+  addEntry('taiwan', 6, 'PLA Air Force extended CAP pattern beyond median line. 3rd consecutive day. ADIZ breach count: 12.', ['Air Defense Act.','Naval Posture']);
+  addEntry('iran', 9, 'Fordow enrichment activity uptick per IAEA snapshot. Cascade configuration change detected.', ['Nuclear Signal','Diplo. Breakdown']);
+  addEntry('korea', 4, 'DPRK state media posturing. No unusual force readiness observed. Assess as rhetorical escalation only.', ['Leadership Rhetoric']);
+  localStorage.setItem('cp_seeded','1');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+seedIfEmpty();
+renderMain();
+setInterval(()=>{
+  document.getElementById('dt-main').textContent = fmtDate();
+},30000);
+</script>
+</body>
+</html>
